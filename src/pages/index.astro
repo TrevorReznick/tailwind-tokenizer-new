@@ -1,11 +1,88 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Analizzatore Classi Tailwind">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Analizzatore Classi Tailwind</h1>
+    
+    <div class="mb-8">
+      <div class="flex gap-4">
+        <input
+          type="text"
+          id="repoUrl"
+          placeholder="URL del repository Git"
+          class="flex-1 p-2 border rounded"
+        />
+        <button 
+          id="analyzeBtn"
+          type="button"
+          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+        >
+          Analizza
+        </button>
+      </div>
+    </div>
+    
+    <div id="error" class="text-red-500 mb-4 hidden"></div>
+    
+    <div id="results" class="hidden">
+      <h2 class="text-xl font-semibold mb-4">Classi Tailwind trovate:</h2>
+      <div id="classes" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      </div>
+    </div>
+  </main>
 </Layout>
+
+<script>
+  const repoUrlInput = document.getElementById('repoUrl') as HTMLInputElement;
+  const analyzeBtn = document.getElementById('analyzeBtn') as HTMLButtonElement;
+  const errorDiv = document.getElementById('error');
+  const resultsDiv = document.getElementById('results');
+  const classesDiv = document.getElementById('classes');
+
+  if (analyzeBtn && errorDiv && resultsDiv && classesDiv) {
+    analyzeBtn.addEventListener('click', async () => {
+      const repoUrl = repoUrlInput.value;
+      if (!repoUrl) return;
+
+      // Mostra stato di caricamento
+      analyzeBtn.textContent = 'Analisi in corso...';
+      analyzeBtn.disabled = true;
+      errorDiv.classList.add('hidden');
+      resultsDiv.classList.add('hidden');
+
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ repoUrl }),
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          errorDiv.classList.remove('hidden');
+          errorDiv.textContent = data.error;
+          return;
+        }
+
+        if (data.classes) {
+          resultsDiv.classList.remove('hidden');
+		  console.log(data)
+          classesDiv.innerHTML = data.classes
+            .map((cls: string) => `<div class="p-2 bg-gray-100 rounded">${cls}</div>`)
+            .join('');
+        }
+      } catch (e) {
+        errorDiv.classList.remove('hidden');
+        errorDiv.textContent = 'Errore durante l\'analisi del repository';
+      } finally {
+        analyzeBtn.textContent = 'Analizza';
+        analyzeBtn.disabled = false;
+      }
+    });
+  }
+</script>
