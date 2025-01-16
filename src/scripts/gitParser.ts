@@ -5,29 +5,30 @@ import * as path from 'node:path';
 import * as crypto from 'node:crypto';
 
 export async function parseGitRepo(repoUrl: string) {
+
   const tempBaseDir = path.join(process.cwd(), '..', '.git-temp');
   const tempDirName = crypto.randomBytes(16).toString('hex');
   const tempDir = path.join(tempBaseDir, tempDirName);
   
   try {
     // Crea la directory temporanea
-    await fsPromises.mkdir(tempBaseDir, { recursive: true });
+    await fsPromises.mkdir(tempBaseDir, { recursive: true })
     
     // Clona il repository
     const git = simpleGit();
-    console.log('Clonazione del repository...');
-    await git.clone(repoUrl, tempDir, ['--depth', '1']);
+    console.log('Clonazione del repository...')
+    await git.clone(repoUrl, tempDir, ['--depth', '1'])
 
     // Trova e analizza i file
-    console.log('Scansione dei file...');
-    const files = findFilesSync(tempDir);
-    console.log(`Trovati ${files.length} file da analizzare`);
+    console.log('Scansione dei file...')
+    const files = findFilesSync(tempDir)
+    console.log(`Trovati ${files.length} file da analizzare`)
     
     // Estrai le classi
-    const tailwindClasses = await extractTailwindClasses(files);
-    console.log(`Estratte ${tailwindClasses.size} classi uniche`);
+    const tailwindClasses = await extractTailwindClasses(files)
+    console.log(`Estratte ${tailwindClasses.size} classi uniche`)
     
-    return tailwindClasses;
+    return tailwindClasses
   } catch (error) {
     console.error('Errore durante l\'analisi:', error);
     throw error;
@@ -100,9 +101,9 @@ async function extractTailwindClasses(files: string[]): Promise<Set<string>> {
         }
       }
     } catch (e) {
-      console.error(`Errore durante l'analisi del file ${file}:`, e);
+      console.error(`Errore durante l'analisi del file ${file}:`, e)
     }
   }
   
-  return classSet;
+  return classSet
 }
